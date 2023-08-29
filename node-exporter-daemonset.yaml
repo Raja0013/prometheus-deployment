@@ -1,0 +1,70 @@
+apiVersion: apps/v1 
+kind: DaemonSet 
+metadata: 
+  name: node-exporter 
+  namespace: monitoring 
+  labels: 
+    app: node-exporter 
+spec: 
+  selector: 
+    matchLabels: 
+      app: node-exporter 
+  template: 
+    metadata: 
+      labels: 
+        app: node-exporter 
+    spec: 
+      containers: 
+      - args: 
+        - --path.procfs=/host/proc 
+        - --path.sysfs=/host/sys 
+        - --path.rootfs=/host/root 
+        image: prom/node-exporter:v0.18.1 
+        name: node-exporter 
+        ports: 
+        - containerPort: 9100 
+          hostPort: 9100 
+          name: scrape 
+          protocol: TCP 
+        terminationMessagePath: /dev/termination-log 
+        terminationMessagePolicy: File 
+        volumeMounts: 
+        - mountPath: /host/proc 
+          name: proc 
+          readOnly: true 
+        - mountPath: /host/sys 
+          name: sys 
+          readOnly: true 
+        - mountPath: /host/root 
+          mountPropagation: HostToContainer 
+          name: root 
+          readOnly: true 
+        - mountPath: /var/lib 
+          mountPropagation: HostToContainer 
+          name: root1 
+          readOnly: true 
+      hostNetwork: true 
+      hostPID: true 
+      restartPolicy: Always 
+      schedulerName: default-scheduler 
+      tolerations:
+        - operator: Exists
+          effect: NoSchedule
+      terminationGracePeriodSeconds: 30 
+      volumes: 
+      - hostPath: 
+          path: /proc 
+          type: "" 
+        name: proc 
+      - hostPath: 
+          path: /sys 
+          type: "" 
+        name: sys 
+      - hostPath: 
+          path: / 
+          type: "" 
+        name: root
+      - hostPath: 
+          path: /var/lib 
+          type: "" 
+        name: root1 
