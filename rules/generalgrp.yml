@@ -1,0 +1,85 @@
+groups:
+- name: generalgrp
+#devops_239
+  rules:
+  - alert: NodeFilesystemOutOfSpace(/)
+    annotations:
+      description: Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left.
+      runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/nodefilesystemalmostoutofspace
+      summary: Filesystem has less than 20% space left.
+    expr: |
+      sum by (clusterID,instance,mountpoint) (
+        node_filesystem_avail_bytes{job="node-exporter",fstype!="",mountpoint="/"} / node_filesystem_size_bytes{job="node-exporter",fstype!="",mountpoint="/"} * 100 < 20
+      and
+        node_filesystem_readonly{job="node-exporter",fstype!="",mountpoint="/"} == 0
+      )
+    for: 5m
+    labels:
+      severity: warning
+
+
+  - alert: NodeFilesystemOutOfSpace(/home)
+    annotations:
+      description: Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left.
+      runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/nodefilesystemalmostoutofspace
+      summary: Filesystem has less than 20% space left.
+    expr: |
+      sum by (clusterID,instance,mountpoint) (
+        node_filesystem_avail_bytes{job="node-exporter",fstype!="",mountpoint="/home"} / node_filesystem_size_bytes{job="node-exporter",fstype!="",mountpoint="/home"} * 100 < 20
+      and
+        node_filesystem_readonly{job="node-exporter",fstype!="",mountpoint="/home"} == 0
+      )
+    for: 5m
+    labels:
+      severity: warning
+
+
+  - alert: NodeFilesystemOutOfSpace(/var/lib/docker)
+    annotations:
+      description: Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left.
+      runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/nodefilesystemalmostoutofspace
+      summary: Filesystem has less than 20% space left.
+    expr: |
+      sum by (clusterID,instance,mountpoint) (
+        node_filesystem_avail_bytes{job="node-exporter",fstype!="",mountpoint="/var/lib/docker"} / node_filesystem_size_bytes{job="node-exporter",fstype!="",mountpoint="/var/lib/docker"} * 100 < 20
+      and
+        node_filesystem_readonly{job="node-exporter",fstype!="",mountpoint="/var/lib/docker"} == 0
+      )
+    for: 5m
+    labels:
+      severity: warning
+
+
+  - alert: NodeFilesystemOutOfSpace(/titan-data)
+    annotations:
+      description: Filesystem on {{ $labels.device }} at {{ $labels.instance }} has only {{ printf "%.2f" $value }}% available space left.
+      runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/nodefilesystemalmostoutofspace
+      summary: Filesystem has less than 20% space left.
+    expr: |
+      sum by (clusterID,instance,mountpoint) (
+        node_filesystem_avail_bytes{job="node-exporter",fstype!="",mountpoint="/titan-data"} / node_filesystem_size_bytes{job="node-exporter",fstype!="",mountpoint="/titan-data"} * 100 < 20
+      and
+        node_filesystem_readonly{job="node-exporter",fstype!="",mountpoint="/titan-data"} == 0
+      )
+    for: 5m
+    labels:
+      severity: warning
+
+  - alert: NewPodCreation
+    annotations:
+      message: "New pod been created at last {{ $value | humanizeDuration }}"
+    expr: |
+      sum by (clusterID,pod,namespace) (time() - (kube_pod_created) < 180)
+    for: 1m
+    labels:
+      severity: Info
+
+
+  - alert: NewNodeAddedToCluster
+    annotations:
+      message: "New WorkerNode been added to cluster at last{ $value | humanizeDuration }}"
+    expr: |
+      sum by (clusterID,node) (time() - (kube_node_created) < 180)
+    for: 1m
+    labels:
+      severity: Info
